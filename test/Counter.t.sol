@@ -14,8 +14,8 @@ contract AirdropTest is Test {
     bytes32 root =
         0xc87618c6c49eb4b0825fe2b7323eb2d0a34647d57571acbc0eed60825db81123;
 
-    address user1 = 0x001Daa61Eaa241A8D89607194FC3b1184dcB9B4C;
-    uint user1Amt = 45000000000000;
+    address user1 = 0x244fe02fbcf4db4ad96063b161f00e444fc54011;
+    uint user1Amt = 30000000000000;
 
     Result public result;
 
@@ -35,7 +35,7 @@ contract AirdropTest is Test {
     // test the user cannot claim twice (claim once , then claim again)
     function testUserCantClaimTwice() public {
         _claim();
-        vm.expectRevert("You have already claimed!");
+        vm.expectRevert(AddressHasClaimed());
         _claim();
     }
 
