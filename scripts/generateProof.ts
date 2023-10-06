@@ -1,16 +1,19 @@
 import MerkleTree from "merkletreejs";
-import {keccak256} from "ethers/lib/utils";
+//import { keccak256 } from "ethers/lib/utils";
 import csv from "csv-parser";
 import * as fs from "fs";
-import {utils} from "ethers";
+//import { utils } from "ethers";
 import path from "path";
-import {Data} from "./hashData";
-
-//This might not be used
+import { solidityPackedKeccak256, keccak256 } from "ethers";
 
 export interface AddressProof {
 	leaf: string;
 	proof: string[];
+}
+
+export interface Data {
+	address: string;
+	amount?: number;
 }
 
 const csvfile = path.join(__dirname, "Addresses/address.csv");
@@ -32,19 +35,19 @@ async function generateMerkleTree(csvFilePath: string): Promise<void> {
 	let leaves: string[] = [];
 	// Hash the data using the Solidity keccak256 function
 	for (const row of data) {
-		leaf = utils.solidityKeccak256(
-			["user_address", "uint256", "uint256"],
-			[row.user_address, row.itemID, row.amount]
+		leaf = solidityPackedKeccak256(
+			["address", "uint256"],
+			[row.address, row.amount]
 		);
 		leaves.push(leaf);
 	}
 
 	// Create the Merkle tree
-	const tree = new MerkleTree(leaves, keccak256, {sortPairs: true});
-	const addressProofs: {[address: string]: AddressProof} = {};
+	const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+	const addressProofs: { [address: string]: AddressProof } = {};
 	data.forEach((row, index) => {
 		const proof = tree.getProof(leaves[index]);
-		addressProofs[row.user_address] = {
+		addressProofs[row.address] = {
 			leaf: "0x" + leaves[index].toString(),
 			proof: proof.map((p) => "0x" + p.data.toString("hex")),
 		};
@@ -62,9 +65,9 @@ async function generateMerkleTree(csvFilePath: string): Promise<void> {
 	});
 
 	// Write a JSON object mapping addresses to data to a file
-	const addressData: {[address: string]: Data} = {};
+	const addressData: { [address: string]: Data } = {};
 	data.forEach((row) => {
-		addressData[row.user_address] = row;
+		addressData[row.address] = row;
 	});
 
 	await new Promise<void>((resolve, reject) => {

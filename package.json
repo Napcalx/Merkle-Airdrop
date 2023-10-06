@@ -9,18 +9,16 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "ethers": "^6.7.1",
     "hardhat": "^2.18.0"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.9.3",
-    "csv-parse": "^5.5.1",
     "csv-parser": "^3.0.0",
-    "ethers": "^6.7.1",
-    "ethers-utils": "^2.1.11",
+    "csv-writer": "^1.6.0",
     "merkletreejs": "^0.3.10",
-    "typescript-utils": "^1.0.0",
-    "util": "^0.12.5",
-    "utils": "^0.3.1"
+    "solmate": "^6.2.0"
   }
 }
