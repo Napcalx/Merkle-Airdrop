@@ -1,54 +1,65 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
-
-import {Test, console2, stdJson} from "lib/forge-std/src/Test.sol";
 import {Airdrop} from "../src/Airdrop.sol";
+import {Assist, Information, Qualified} from "./Assist.sol";
 
-contract AirdropTest is Test {
+contract AirdropTest is Assist {
     Airdrop public airdrop;
-    using stdJson for string;
-    struct Result {
-        bytes32 leaf;
-        bytes32[] proof;
-    }
+
+    event successfulClaim(address account, uint256 amount);
+
     bytes32 root =
-        0xc87618c6c49eb4b0825fe2b7323eb2d0a34647d57571acbc0eed60825db81123;
+        0xf7992317de2bc61f25971e0074b43eab675ffa0e353ae7c861e1600cb4470df2;
 
-    address user1 = 0x73e56A6af00481656Ee617b26f0953Fb3153872b;
-    uint user1Amt = 45000000000000;
-    
-
-    
-    Result public result;
+    Information info;
+    Qualified quali;
 
     function setUp() public {
         airdrop = new Airdrop(root);
-        string memory _root = vm.projectRoot();
-        string memory path = string.concat(_root, "/merkle_tree.json");
-        string memory json = vm.readFile(path);
-
-        bytes memory res = json.parseRaw(
-            string.concat(".", vm.toString(user1))
-        );
-
-        result = abi.decode(res, (Result));
+        (quali, info) = getInfo("0");
     }
 
-    // test the user cannot claim twice (claim once , then claim again)
     function testUserCantClaimTwice() public {
-        _claim();
-        vm.expectRevert("You have claimed Already");
-        _claim();
+        claim(info.proof, quali.user, quali.amount);
+        vm.expectRevert("You have Already claimed");
+        claim(info.proof, quali.user, quali.amount);
     }
 
-    function testClaim() public {
-        bool success = _claim();
-        assertEq(airdrop.balanceOf(user1), user1Amt);
-
-        assertTrue(success);
+    function testIncorrectProof() public {
+        (Information memory In) = getInfo(3);
+        vm.expectRevert("Invalid Verification");
+        claim(In.proof, quali.user, quali.amount);
     }
 
-    function _claim() internal returns (bool success) {
-        success = airdrop.claim(user1, user1Amt, result.proof);
+    function testIncorrectAccount() public {
+        vm.expectRevert("Invalid Account");
+        claim(info.proof, vm.addr(200), quali.amount);
     }
-}
+
+    function testIncorrectAmount() public {
+        vm.expectRevert("Invalid Amount");
+        claim(info.proof, quali.user, 100);
+    }
+
+    function testClaimSuccessful() public {
+        claim(info.proof, quali.user, quali.amount);
+        assertTrue(airdrop.claimed(quali.user));
+    }
+
+    function testMintExpectedAmount() public {
+        uint balanceBefore = airdrop.balanceOf(quali.user);
+        claim(info.proof, quali.user, quali.amount);
+        uint balanceAfter = airdrop.balanceOf(quali.user);
+        assertEq(balanceAfter - balanceBefore, quali.amount);
+    }
+
+    function testEventEmittdAfterClaim() public  {
+        vm.expectEmit(true, true, false, false);
+        emit successfulClaim(quali.user, quali.amount);
+        claim(info.proof, quali.user, quali.amount);
+    }
+
+    function claim(bytes32[] memory proof, address user_, uint amount_) 
+    internal returns (bool success) {
+        success = airdrop.claim(proof, user_, amount_);
+    }
