@@ -18,7 +18,7 @@
     "@openzeppelin/contracts": "^4.9.3",
     "csv-parser": "^3.0.0",
     "csv-writer": "^1.6.0",
-    "merkletreejs": "^0.3.10",
+    "merkletreejs": "^0.3.11",
     "solmate": "^6.2.0"
   }
 }
