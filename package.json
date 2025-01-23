@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.9.6",
-    "csv-parser": "^3.0.0",
+    "csv-parser": "^3.1.0",
     "csv-writer": "^1.6.0",
     "merkletreejs": "^0.3.10",
     "solmate": "^6.7.0"
